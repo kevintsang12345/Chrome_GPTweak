@@ -33,17 +33,25 @@
         font-size: 12px;
         color: #1f2937;
         max-width: calc(100vw - 16px);
+        opacity: .62;
+        transition: opacity .14s ease;
+      }
+      .lw-wrap:hover,
+      .lw-wrap:focus-within,
+      .lw-wrap.lw-attention {
+        opacity: 1;
       }
       .lw-pill {
         display: flex;
         align-items: center;
         gap: 4px;
         padding: 4px;
-        background: rgba(255,255,255,.97);
-        border: 1px solid rgba(17,24,39,.16);
+        background: rgba(255,255,255,.58);
+        border: 1px solid rgba(17,24,39,.12);
         border-radius: 10px;
-        box-shadow: 0 4px 18px rgba(0,0,0,.16);
-        backdrop-filter: blur(8px);
+        box-shadow: 0 3px 14px rgba(0,0,0,.09);
+        backdrop-filter: blur(10px) saturate(120%);
+        -webkit-backdrop-filter: blur(10px) saturate(120%);
         max-width: calc(100vw - 16px);
       }
       button {
@@ -57,26 +65,26 @@
         line-height: 1;
         user-select: none;
       }
-      button:hover { background: #f3f4f6; color: #111827; }
+      button:hover { background: rgba(243,244,246,.88); color: #111827; }
       button:focus-visible { outline: 2px solid #6366f1; outline-offset: 1px; }
       button[disabled] { opacity: .45; cursor: default; }
       .lw-main {
         font-weight: 700;
-        background: #f5f3ff;
+        background: rgba(245,243,255,.62);
         color: #5b21b6;
       }
-      .lw-main:hover { background: #ede9fe; color: #4c1d95; }
-      .lw-sep { width: 1px; height: 18px; background: #e5e7eb; margin: 0 1px; }
+      .lw-main:hover { background: rgba(237,233,254,.9); color: #4c1d95; }
+      .lw-sep { width: 1px; height: 18px; background: rgba(229,231,235,.72); margin: 0 1px; }
       .lw-status { padding: 0 5px; color: #6b7280; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .lw-message {
         box-sizing: border-box;
         width: max-content;
         max-width: min(420px, calc(100vw - 16px));
         padding: 9px 11px;
-        background: rgba(255,255,255,.98);
+        background: rgba(255,255,255,.94);
         border: 1px solid rgba(185,28,28,.25);
         border-radius: 9px;
-        box-shadow: 0 4px 18px rgba(0,0,0,.16);
+        box-shadow: 0 4px 18px rgba(0,0,0,.12);
         color: #b91c1c;
         line-height: 1.4;
         white-space: normal;
@@ -237,6 +245,8 @@
   }
 
   function setStatus(text, isError = false) {
+    wrap.classList.toggle("lw-attention", Boolean(isError && text));
+
     if (isError && text) {
       statusEl.textContent = "";
       statusEl.hidden = true;
@@ -257,6 +267,7 @@
   }
 
   function clearStatus() {
+    wrap.classList.remove("lw-attention");
     statusEl.textContent = "";
     statusEl.hidden = true;
     messageEl.textContent = "";
@@ -313,12 +324,18 @@
     }
 
     const wrapRect = wrap.getBoundingClientRect();
-    const margin = 6;
-    let left = Math.min(rect.right - wrapRect.width - margin, innerWidth - wrapRect.width - 8);
-    left = Math.max(8, left);
+    const gap = 10;
+    const viewportMargin = 8;
 
-    let top = rect.bottom - wrapRect.height - margin;
-    if (top < 8) top = Math.min(rect.bottom + margin, innerHeight - wrapRect.height - 8);
+    let left = Math.min(rect.right - wrapRect.width, innerWidth - wrapRect.width - viewportMargin);
+    left = Math.max(viewportMargin, left);
+
+    // Keep the toolbar outside the editable field. Prefer below it, then above it.
+    let top = rect.bottom + gap;
+    if (top + wrapRect.height > innerHeight - viewportMargin) {
+      top = rect.top - wrapRect.height - gap;
+    }
+    top = Math.max(viewportMargin, Math.min(top, innerHeight - wrapRect.height - viewportMargin));
 
     host.style.left = `${Math.round(left)}px`;
     host.style.top = `${Math.round(top)}px`;
