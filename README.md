@@ -16,24 +16,31 @@ Your text stays on your machine: the extension only talks to `localhost:11434` /
 - Configurable Ollama model
 - No cloud API keys, analytics, or external LLM calls
 
-## Recommended Ollama model
+## Recommended Ollama models
 
-The default is:
+Lightweight default:
 
 ```bash
 ollama pull qwen3:1.7b
 ```
 
-If you want something smaller/faster:
+Recommended for better instruction following:
+
+```bash
+ollama pull qwen3:4b-instruct
+```
+
+Smaller/faster alternative:
 
 ```bash
 ollama pull gemma3:1b
 ```
 
-If you want better rewrite quality and have enough RAM/VRAM:
+GPTweak currently uses:
 
-```bash
-ollama pull qwen3:4b
+```text
+temperature: 0.2
+thinking: false
 ```
 
 ## Install in Chrome
@@ -64,17 +71,15 @@ If Ollama logs something like:
 403 | 127.0.0.1 | POST "/api/chat"
 ```
 
-Ollama is receiving the request but is rejecting the Chrome extension origin. Browser extension origins must be explicitly allowed with `OLLAMA_ORIGINS`.
-
 On Windows, open PowerShell and run:
 
 ```powershell
 setx OLLAMA_ORIGINS "chrome-extension://*"
 ```
 
-Then **completely quit Ollama from the Windows system tray and start it again**. The environment variable is only picked up by a newly started Ollama process.
+Then **completely quit Ollama from the Windows system tray and start it again**.
 
-For tighter security, you can allow only GPTweak instead of all Chrome extensions. Find the extension ID at `chrome://extensions` and set:
+For tighter security, allow only GPTweak. Find the extension ID at `chrome://extensions` and run:
 
 ```powershell
 setx OLLAMA_ORIGINS "chrome-extension://YOUR_EXTENSION_ID"
@@ -84,21 +89,13 @@ Then restart Ollama again.
 
 ### Ollama returns HTTP 404 for `POST /api/chat`
 
-If Ollama logs:
-
-```text
-404 | 127.0.0.1 | POST "/api/chat"
-```
-
-`/api/chat` is a valid Ollama endpoint. A common reason for a 404 is that the model requested by GPTweak is not installed locally.
-
 Check your installed models:
 
 ```powershell
 ollama list
 ```
 
-GPTweak defaults to `qwen3:1.7b`. If it is missing, install it:
+GPTweak defaults to `qwen3:1.7b`. If it is missing:
 
 ```powershell
 ollama pull qwen3:1.7b
@@ -106,7 +103,7 @@ ollama pull qwen3:1.7b
 
 You can also select another installed model from the GPTweak popup.
 
-To verify the model directly from PowerShell, run:
+To test the API directly from PowerShell:
 
 ```powershell
 $body = @{
@@ -124,7 +121,7 @@ Invoke-RestMethod `
   -Body $body
 ```
 
-If that succeeds, Ollama and the model are working and GPTweak should be able to use them. If it still returns 404 even though the exact model name appears in `ollama list`, check your Ollama version with:
+If the exact model name appears in `ollama list` but the request still returns 404:
 
 ```powershell
 ollama --version
@@ -134,13 +131,13 @@ Then update/restart Ollama and try again.
 
 ### GPTweak cannot connect to Ollama
 
-Confirm Ollama is running and that the local API responds:
+Confirm the local API responds:
 
 ```powershell
 Invoke-RestMethod "http://localhost:11434/api/tags"
 ```
 
-GPTweak currently permits only these local endpoints:
+GPTweak currently permits only:
 
 - `http://localhost:11434`
 - `http://127.0.0.1:11434`
