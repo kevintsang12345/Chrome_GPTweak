@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "GPTweak",
+  "version": "1.0.0",
+  "description": "Fix, rephrase, shorten, and polish text in web text boxes using a local Ollama model.",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "http://localhost:11434/*",
+    "http://127.0.0.1:11434/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "GPTweak",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ]
+}
