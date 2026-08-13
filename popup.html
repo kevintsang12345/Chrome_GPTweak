@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>GPTweak</title>
+  <style>
+    body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif; width: 330px; margin: 0; color: #111827; background: #fff; }
+    main { padding: 16px; }
+    h1 { margin: 0 0 4px; font-size: 18px; }
+    .sub { margin: 0 0 16px; color: #6b7280; font-size: 12px; line-height: 1.45; }
+    label { display: block; font-size: 12px; font-weight: 650; margin: 12px 0 6px; }
+    select, input { width: 100%; box-sizing: border-box; border: 1px solid #d1d5db; border-radius: 8px; padding: 9px 10px; background: #fff; font-size: 13px; }
+    select:focus, input:focus { outline: 2px solid #c4b5fd; border-color: #8b5cf6; }
+    .row { display: flex; gap: 8px; margin-top: 12px; }
+    button { flex: 1; border: 0; border-radius: 8px; padding: 9px 10px; cursor: pointer; font-weight: 650; }
+    #save { background: #6d28d9; color: white; }
+    #refresh { background: #f3f4f6; color: #374151; }
+    #status { min-height: 18px; margin-top: 10px; font-size: 12px; color: #6b7280; line-height: 1.4; }
+    #status.error { color: #b91c1c; }
+    .tip { margin-top: 12px; border-top: 1px solid #f0f0f0; padding-top: 11px; font-size: 11px; color: #6b7280; line-height: 1.45; }
+    code { font-family: ui-monospace,SFMono-Regular,Consolas,monospace; background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>GPTweak</h1>
+    <p class="sub">Uses Ollama on your computer. Text is sent only to the local Ollama endpoint below.</p>
+
+    <label for="model">Model</label>
+    <select id="model"></select>
+
+    <label for="customModel">Or enter a model name</label>
+    <input id="customModel" placeholder="qwen3:1.7b">
+
+    <label for="endpoint">Ollama endpoint</label>
+    <select id="endpoint">
+      <option value="http://localhost:11434">http://localhost:11434</option>
+      <option value="http://127.0.0.1:11434">http://127.0.0.1:11434</option>
+    </select>
+
+    <div class="row">
+      <button id="refresh">Refresh models</button>
+      <button id="save">Save</button>
+    </div>
+    <div id="status"></div>
+
+    <div class="tip">
+      Focus any normal text box and the floating toolbar will appear. If you select text first, GPTweak rewrites only that selection; otherwise it rewrites the whole field.
+    </div>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>
