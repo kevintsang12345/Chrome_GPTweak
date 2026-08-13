@@ -25,9 +25,14 @@
       :host { all: initial; }
       .lw-wrap {
         pointer-events: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 6px;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
         font-size: 12px;
         color: #1f2937;
+        max-width: calc(100vw - 16px);
       }
       .lw-pill {
         display: flex;
@@ -63,6 +68,21 @@
       .lw-main:hover { background: #ede9fe; color: #4c1d95; }
       .lw-sep { width: 1px; height: 18px; background: #e5e7eb; margin: 0 1px; }
       .lw-status { padding: 0 5px; color: #6b7280; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .lw-message {
+        box-sizing: border-box;
+        width: max-content;
+        max-width: min(420px, calc(100vw - 16px));
+        padding: 9px 11px;
+        background: rgba(255,255,255,.98);
+        border: 1px solid rgba(185,28,28,.25);
+        border-radius: 9px;
+        box-shadow: 0 4px 18px rgba(0,0,0,.16);
+        color: #b91c1c;
+        line-height: 1.4;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        user-select: text;
+      }
       .lw-spinner {
         width: 12px;
         height: 12px;
@@ -90,10 +110,13 @@
         <span class="lw-status" hidden></span>
         <span class="lw-spinner" hidden></span>
       </div>
+      <div class="lw-message" role="alert" hidden></div>
     </div>`;
 
+  const wrap = shadow.querySelector(".lw-wrap");
   const pill = shadow.querySelector(".lw-pill");
   const statusEl = shadow.querySelector(".lw-status");
+  const messageEl = shadow.querySelector(".lw-message");
   const spinnerEl = shadow.querySelector(".lw-spinner");
   const undoButton = shadow.querySelector('[data-action="undo"]');
   const modeButtons = [...shadow.querySelectorAll("button[data-mode]")];
@@ -214,13 +237,32 @@
   }
 
   function setStatus(text, isError = false) {
+    if (isError && text) {
+      statusEl.textContent = "";
+      statusEl.hidden = true;
+      messageEl.textContent = text;
+      messageEl.title = text;
+      messageEl.hidden = false;
+      requestAnimationFrame(reposition);
+      return;
+    }
+
+    messageEl.textContent = "";
+    messageEl.title = "";
+    messageEl.hidden = true;
     statusEl.textContent = text;
     statusEl.hidden = !text;
-    statusEl.classList.toggle("lw-error", !!isError);
+    statusEl.classList.remove("lw-error");
+    requestAnimationFrame(reposition);
   }
 
   function clearStatus() {
-    setStatus("");
+    statusEl.textContent = "";
+    statusEl.hidden = true;
+    messageEl.textContent = "";
+    messageEl.title = "";
+    messageEl.hidden = true;
+    requestAnimationFrame(reposition);
   }
 
   async function runRewrite(mode) {
@@ -255,7 +297,7 @@
       reposition();
     } catch (error) {
       setStatus(error.message || String(error), true);
-      setTimeout(clearStatus, 4500);
+      setTimeout(clearStatus, 10000);
     } finally {
       setBusy(false);
     }
@@ -270,13 +312,13 @@
       return;
     }
 
-    const toolbarRect = pill.getBoundingClientRect();
+    const wrapRect = wrap.getBoundingClientRect();
     const margin = 6;
-    let left = Math.min(rect.right - toolbarRect.width - margin, innerWidth - toolbarRect.width - 8);
+    let left = Math.min(rect.right - wrapRect.width - margin, innerWidth - wrapRect.width - 8);
     left = Math.max(8, left);
 
-    let top = rect.bottom - toolbarRect.height - margin;
-    if (top < 8) top = Math.min(rect.bottom + margin, innerHeight - toolbarRect.height - 8);
+    let top = rect.bottom - wrapRect.height - margin;
+    if (top < 8) top = Math.min(rect.bottom + margin, innerHeight - wrapRect.height - 8);
 
     host.style.left = `${Math.round(left)}px`;
     host.style.top = `${Math.round(top)}px`;
@@ -293,7 +335,7 @@
   function scheduleHide() {
     clearTimeout(state.hideTimer);
     state.hideTimer = setTimeout(() => {
-      if (!pill.matches(":hover") && document.activeElement !== state.active) {
+      if (!wrap.matches(":hover") && document.activeElement !== state.active) {
         host.style.display = "none";
         state.active = null;
       }
@@ -320,8 +362,8 @@
     event.preventDefault();
   });
 
-  pill.addEventListener("mouseenter", () => clearTimeout(state.hideTimer));
-  pill.addEventListener("mouseleave", scheduleHide);
+  wrap.addEventListener("mouseenter", () => clearTimeout(state.hideTimer));
+  wrap.addEventListener("mouseleave", scheduleHide);
 
   pill.addEventListener("click", (event) => {
     const button = event.target.closest("button");
