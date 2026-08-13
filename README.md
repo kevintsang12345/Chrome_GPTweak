@@ -16,25 +16,48 @@ Your text stays on your machine: the extension only talks to `localhost:11434` /
 - Configurable Ollama model
 - No cloud API keys, analytics, or external LLM calls
 
-## Recommended Ollama model
+## Recommended Ollama models
 
-The default is:
+### Lightweight default
+
+GPTweak defaults to:
 
 ```bash
 ollama pull qwen3:1.7b
 ```
 
-If you want something smaller/faster:
+This is a good lightweight option for quick grammar fixes and simple rewrites.
+
+### Recommended for better instruction following
+
+If the smaller model sometimes **answers or interprets your text instead of rewriting it**, use:
+
+```bash
+ollama pull qwen3:4b-instruct
+```
+
+Then select `qwen3:4b-instruct` in the GPTweak popup.
+
+The 4B Instruct model is larger, but it is generally a better fit for GPTweak's text-transformation instructions, especially with short or ambiguous phrases.
+
+### Smaller/faster alternative
 
 ```bash
 ollama pull gemma3:1b
 ```
 
-If you want better rewrite quality and have enough RAM/VRAM:
+This can be useful on lower-powered machines, although very small models may be less consistent at following strict rewrite instructions.
 
-```bash
-ollama pull qwen3:4b
+## Generation settings
+
+GPTweak currently uses:
+
+```text
+temperature: 0.2
+thinking: false
 ```
+
+The temperature is intentionally kept at **0.2** rather than zero. This allows a small amount of natural variation between rewrites while keeping the output fairly focused and predictable.
 
 ## Install in Chrome
 
@@ -55,6 +78,32 @@ Focus a normal text input, textarea, or contenteditable editor. GPTweak shows a 
 If you select part of the text before clicking a mode, only the selection is rewritten. With no selection, GPTweak rewrites the whole field.
 
 ## FAQ / Troubleshooting
+
+### The model answers my text instead of rewriting it
+
+Small local models can sometimes interpret short or ambiguous input as a conversational request rather than text that should be edited.
+
+For example, a phrase such as:
+
+```text
+This is a PR
+```
+
+should normally stay close to the original wording when using **Fix**, but a weaker instruction-following model may incorrectly respond to what it thinks `PR` means or ask for more context.
+
+If this happens:
+
+1. Try `qwen3:4b-instruct`, which is recommended for stronger instruction following:
+
+   ```powershell
+   ollama pull qwen3:4b-instruct
+   ```
+
+2. Open the GPTweak popup and select the exact installed model name.
+3. Retry the rewrite. Because GPTweak uses `temperature: 0.2`, a retry can occasionally produce a better wording while still keeping variance low.
+4. Use **Fix** when you want minimal corrections and **Rephrase** when you want more freedom in the wording.
+
+A stronger model generally helps more than increasing model creativity. GPTweak intentionally keeps the temperature low at `0.2`.
 
 ### Ollama returns HTTP 403 for `POST /api/chat`
 
