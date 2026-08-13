@@ -21,13 +21,13 @@ Your text stays on your machine: the extension only talks to `localhost:11434` /
 Default:
 
 ```bash
-ollama pull qwen3:1.7b
+ollama pull qwen3:4b-instruct
 ```
 
-For stronger instruction following:
+Lighter alternative:
 
 ```bash
-ollama pull qwen3:4b-instruct
+ollama pull qwen3:1.7b
 ```
 
 Smaller/faster alternative:
@@ -53,7 +53,7 @@ The popup discovers installed models through `GET /api/tags`.
 ## Install in Chrome
 
 1. Make sure Ollama is running.
-2. Pull a model, for example `ollama pull qwen3:1.7b`.
+2. Pull the default model: `ollama pull qwen3:4b-instruct`.
 3. Clone or download this repository.
 4. Open `chrome://extensions`.
 5. Enable **Developer mode**.
@@ -96,10 +96,10 @@ Check installed models:
 ollama list
 ```
 
-GPTweak defaults to `qwen3:1.7b`. If it is missing:
+GPTweak's recommended default is `qwen3:4b-instruct`. If it is missing:
 
 ```powershell
-ollama pull qwen3:1.7b
+ollama pull qwen3:4b-instruct
 ```
 
 You can also select another installed model from the GPTweak popup.
