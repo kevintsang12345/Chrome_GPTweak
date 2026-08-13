@@ -6,7 +6,10 @@ const DEFAULTS = {
 const OUTPUT_SCHEMA = {
   type: "object",
   properties: {
-    text: { type: "string" }
+    text: {
+      type: "string",
+      description: "The rewritten plain text only. Do not place JSON, objects, markdown, labels, or wrappers inside this string."
+    }
   },
   required: ["text"],
   additionalProperties: false
@@ -22,7 +25,8 @@ Rules:
 - Never invent context, facts, names, explanations, or intent.
 - Preserve names, acronyms, technical terms, URLs, numbers, formatting, line breaks, emoji, and meaning unless the requested edit requires a change.
 - If the text already satisfies the requested edit, return it unchanged or with only the smallest necessary correction.
-- Put only the transformed text in the "text" field of the required JSON response. Do not add any other fields.`;
+- The required response has one field named "text". Its VALUE must be only the transformed plain text.
+- Never put JSON, a JSON object, a second "text" field, markdown, labels, wrappers, or explanations inside the "text" value.`;
 
 const MODE_PROMPTS = {
   grammar: `Editing mode: FIX.
@@ -54,6 +58,38 @@ function normalizeEndpoint(endpoint) {
   return value;
 }
 
+function unwrapTextValue(value) {
+  let result = String(value ?? "").trim();
+
+  // Small models occasionally serialize another {"text":"..."} object inside
+  // the schema's text string. Unwrap a few layers defensively.
+  for (let depth = 0; depth < 3; depth++) {
+    const candidate = result
+      .replace(/^```(?:json)?\s*/i, "")
+      .replace(/\s*```$/, "")
+      .trim();
+
+    if (!candidate.startsWith("{") || !candidate.endsWith("}")) {
+      result = candidate;
+      break;
+    }
+
+    try {
+      const nested = JSON.parse(candidate);
+      if (!nested || typeof nested.text !== "string") {
+        result = candidate;
+        break;
+      }
+      result = nested.text.trim();
+    } catch (_) {
+      result = candidate;
+      break;
+    }
+  }
+
+  return result.trim();
+}
+
 function parseStructuredOutput(content) {
   let raw = (content || "").trim();
   if (!raw) throw new Error("Ollama returned an empty response.");
@@ -71,13 +107,13 @@ function parseStructuredOutput(content) {
     throw new Error("Ollama structured output did not contain a text field.");
   }
 
-  const result = parsed.text.trim();
+  const result = unwrapTextValue(parsed.text);
   if (!result) throw new Error("Ollama returned an empty rewrite.");
   return result;
 }
 
 function buildSystemPrompt(mode) {
-  return `${BASE_PROMPT}\n\n${MODE_PROMPTS[mode] || MODE_PROMPTS.rephrase}\n\nRequired JSON schema:\n${JSON.stringify(OUTPUT_SCHEMA)}`;
+  return `${BASE_PROMPT}\n\n${MODE_PROMPTS[mode] || MODE_PROMPTS.rephrase}`;
 }
 
 function buildUserPrompt(text) {
